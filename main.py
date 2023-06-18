@@ -2,7 +2,6 @@ from datetime import datetime
 from config import acces_token
 import vk_api
 
-
 class VkTools():
     def __init__(self, acces_token):
         self.api = vk_api.VkApi(token=acces_token)
@@ -10,17 +9,16 @@ class VkTools():
     def get_profile_info(self, user_id):
 
         info, = self.api.method('users.get',
-                                {'user_ids': user_id,
-                                 'fields': 'city,bdate,sex,relation,home_town'
-                                 }
-                                )
-        user_info = {'name': info['first_name'] + ' ' + info['last_name'],
-                     'id': info['id'],
+                            {'user_id': user_id,
+                            'fields': 'city,bdate,sex,relation,home_town' 
+                            }
+                            )
+        user_info = {'name': info['first_name'] + ' '+ info['last_name'],
+                     'id':  info['id'],
                      'bdate': info['bdate'] if 'bdate' in info else None,
-                     'home_town': info['home_town'] if 'home_town' in info else None,
+                     'home_town': info['home_town'],
                      'sex': info['sex'],
-                     'city': info['city']['id'] if 'city' in info else None,
-                     'offset': 0
+                     'city': info['city']['id'] if 'city' in info else None
                      }
         return user_info
 
@@ -62,7 +60,7 @@ class VkTools():
                         )
 
         return res
-
+    
     def get_photos(self, user_id):
         photos = self.api.method('photos.get',
                                  {'user_id': user_id,
@@ -88,7 +86,23 @@ class VkTools():
         res.sort(key=lambda x: x['likes'] + x['comments'] * 10, reverse=True)
         return res
 
+    def get_city(self, city_name):
+        cities = self.api.method("database.getCities",
+                                 {'items': 0,
+                                  'q': city_name,
+                                  'count': 1,
+                                  'offset': 0,
+                                  }
+                                 )
+        try:
+            cities = cities['items']
+        except KeyError:
+            return []
+        for city in cities:
+            res = city['id']
+            return res
+
 if __name__ == '__main__':
     bot = VkTools(acces_token)
-    params = bot.get_profile_info(789657038)
+    params = bot.get_profile_info(63267424)
     users = bot.search_users(params)
